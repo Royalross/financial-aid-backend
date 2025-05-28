@@ -42,7 +42,7 @@ public class UserService {
      * - User is persisted in the repository.
      */
     public void registerUser(User user) {
-        // Always hash the password before saving!
+        // Always hash the password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
@@ -54,7 +54,7 @@ public class UserService {
     public AuthResponse authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.login(), // This can be username or email!
+                        loginRequest.login(), // This can be username or email
                         loginRequest.password()
                 )
         );

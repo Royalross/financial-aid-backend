@@ -36,7 +36,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Error: Registration failed. Username or email already in use.");
         }
 
-        // Always assign default role.
+        // Always assign default role
         User user = new User();
         user.setUsername(req.username());
         user.setEmail(req.email());
