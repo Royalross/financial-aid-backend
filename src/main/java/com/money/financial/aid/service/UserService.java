@@ -21,6 +21,9 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.stream.Collectors;
 
+/**
+ * Handles core user operations (registration, authentication, JWT).
+ */
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -35,28 +38,29 @@ public class UserService {
 
     /**
      * Registers a new user:
-     * - encrypts password
-     * - saves to repository
+     * - Password is securely hashed (never stored as plain text)
+     * - User is persisted in the repository.
      */
     public void registerUser(User user) {
+        // Always hash the password before saving!
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
     /**
-     * Authenticates credentials, issues a JWT, and returns it.
+     * Authenticates user credentials (email and password).
+     * If valid, returns a signed JWT for API use.
      */
     public AuthResponse authenticateUser(LoginRequest loginRequest) {
-        // 1) Authenticate against UserDetailsService/DaoAuthenticationProvider
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.email(),
+                        loginRequest.login(), // This can be username or email!
                         loginRequest.password()
                 )
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // 2) Build JWT claims
+        // Build JWT claims
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")
@@ -68,20 +72,21 @@ public class UserService {
                         .collect(Collectors.toList()))
                 .build();
 
-        // 3) Provide a JWS header specifying HS256 so the encoder picks our HMAC key
+        // Create a JWT header for HMAC/HS256
         JwsHeader jwsHeader = JwsHeader.with(() -> "HS256").build();
 
-        // 4) Encode header + claims into a compact JWT
+        // Encode the header + claims as a JWT token
         String token = jwtEncoder
                 .encode(JwtEncoderParameters.from(jwsHeader, claims))
                 .getTokenValue();
 
-        // 5) Return the token`
+        // Return token and its type
         return new AuthResponse(token, "Bearer");
     }
 
     /**
-     * Retrieves a user by username or throws if not found.
+     * Retrieves a user by their username (not used for authentication!).
+     * Throws if not found.
      */
     public User findUserByUsername(String username) {
         return userRepository.findByUsername(username)

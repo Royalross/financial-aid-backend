@@ -18,33 +18,41 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
+/**
+ * Configuration for JWT encoder/decoder using HMAC (HS256).
+ * Secret is provided as a base64 string in configuration.
+ */
 @Configuration
 public class JwtConfig {
 
     /**
-     * Base64-encoded 256-bit HMAC secret (must decode to exactly 32 bytes)
+     * Base64-encoded 256-bit HMAC secret (must decode to exactly 32 bytes).
      */
     @Value("${jwt.secret}")
     private String jwtSecret;
 
+    /**
+     * JWT encoder bean (for creating tokens).
+     */
     @Bean
     public JwtEncoder jwtEncoder() {
-        // 1) Decode your Base64 secret into a raw HMAC-SHA256 key
+        // Decode the base64 secret into bytes.
         byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
         SecretKey hmacKey = new SecretKeySpec(keyBytes, "HmacSHA256");
 
-        // 2) Wrap it in a Nimbus OctetSequenceKey, explicitly HS256
+        // Build a JWK key for Nimbus.
         OctetSequenceKey jwk = new OctetSequenceKey.Builder(hmacKey)
                 .algorithm(JWSAlgorithm.HS256)
                 .build();
 
-        // 3) Put that single JWK into an ImmutableJWKSet source
+        // Create the JWK source for the encoder.
         JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(new JWKSet(jwk));
-
-        // 4) Give NimbusJwtEncoder that source — now it always finds your key
         return new NimbusJwtEncoder(jwkSource);
     }
 
+    /**
+     * JWT decoder bean (for validating tokens).
+     */
     @Bean
     public JwtDecoder jwtDecoder() {
         byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);

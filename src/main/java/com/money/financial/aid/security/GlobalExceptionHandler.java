@@ -9,9 +9,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
+/**
+ * Global handler for REST API exceptions.
+ * Returns meaningful, non-leaky error responses to the client.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Handles validation errors (e.g., @Valid fails).
+     * Returns BAD_REQUEST with a summary of validation failures.
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> onValidation(MethodArgumentNotValidException ex) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
@@ -23,6 +31,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(pd);
     }
 
+    /**
+     * Handles all other uncaught exceptions.
+     * Returns INTERNAL_SERVER_ERROR with only a message, never a stack trace.
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> onAny(Exception ex) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
