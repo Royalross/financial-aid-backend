@@ -13,6 +13,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Custom UserDetails implementation to adapt our User entity for Spring Security.
+ */
 @Getter
 @AllArgsConstructor
 public class UserDetailsImpl implements UserDetails, Serializable {
@@ -26,13 +29,15 @@ public class UserDetailsImpl implements UserDetails, Serializable {
     private final Collection<? extends GrantedAuthority> authorities;
     private final boolean enabled;
 
+    /**
+     * Factory method to build UserDetailsImpl from User entity.
+     */
     public static UserDetailsImpl build(User user) {
-        // Convert the user's roles to Spring Security GrantedAuthority objects
+        // Convert user roles to GrantedAuthority objects required by Spring Security.
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
-        // Create a new UserDetailsImpl with all user information
         return new UserDetailsImpl(
                 user.getId(),
                 user.getUsername(),
@@ -58,19 +63,20 @@ public class UserDetailsImpl implements UserDetails, Serializable {
         return username;
     }
 
+    // The following account checks can be extended for advanced features (lockout, expiration, etc.)
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return true; // Modify if supporting account expiration
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return true; // Modify if supporting account lockout
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return true; // Modify if supporting password expiration
     }
 
     @Override

@@ -8,7 +8,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-
+/**
+ * Loads user-specific data for Spring Security authentication.
+ * Supports login by either email or username.
+ */
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
@@ -18,16 +21,18 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Loads a user by either email or username.
+     * Throws {@link UsernameNotFoundException} if no user matches the login.
+     */
     @Override
     @Transactional
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // In this application, the username parameter is actually the email
-        // Find the user in the database by email
-        User userEntity = userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + username));
-
-        // Convert the User entity to Spring Security's UserDetails implementation
-        // This adapts our user model to what Spring Security expects
+    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
+        // First try email, then username
+        User userEntity = userRepository.findByEmail(login)
+                .or(() -> userRepository.findByUsername(login))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email or username: " + login));
         return UserDetailsImpl.build(userEntity);
     }
+
 }
