@@ -1,5 +1,6 @@
 package com.money.financial.aid.controllers;
 
+import com.money.financial.aid.dtos.AuthResponse;
 import com.money.financial.aid.dtos.LoginRequest;
 import com.money.financial.aid.dtos.RegisterRequest;
 import com.money.financial.aid.model.User;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Controller for authentication endpoints.
@@ -30,7 +32,7 @@ public class AuthController {
      * - Avoids leaking if username/email is already registered.
      */
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest req) {
+    public ResponseEntity<String> registerUser(@Valid @RequestBody RegisterRequest req) {
         // no duplicates
         if (userRepository.existsByUsername(req.username()) || userRepository.existsByEmail(req.email())) {
             return ResponseEntity.badRequest().body("Error: Registration failed. Username or email already in use.");
@@ -41,7 +43,7 @@ public class AuthController {
         user.setUsername(req.username());
         user.setEmail(req.email());
         user.setPassword(req.password()); // Will be securely hashed in service layer.
-        user.setRoles(new HashSet<>(Collections.singletonList("ROLE_USER")));
+        user.setRoles(new HashSet<>(Set.of("ROLE_USER")));
 
         userService.registerUser(user);
         return ResponseEntity.ok("User registered successfully");
@@ -51,7 +53,7 @@ public class AuthController {
      * Authenticates a user and returns a JWT on success.
      */
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<AuthResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(userService.authenticateUser(loginRequest));
     }
 
