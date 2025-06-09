@@ -36,6 +36,10 @@ public class UserService {
     @Value("${jwt.expiration-millis}")
     private long jwtExpirationMs;
 
+    /** JWT issuer string for generating tokens. */
+    @Value("${jwt.issuer}")
+    private String jwtIssuer;
+
     /**
      * Registers a new user:
      * - Password is securely hashed (never stored as plain text)
@@ -63,7 +67,7 @@ public class UserService {
         // Build JWT claims
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("self")
+                .issuer(jwtIssuer)
                 .issuedAt(now)
                 .expiresAt(now.plusMillis(jwtExpirationMs))
                 .subject(authentication.getName())

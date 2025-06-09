@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Loads user-specific data for Spring Security authentication.
- * Uses email as the login "username".
+ * Supports login by either email or username.
  */
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -22,8 +22,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     /**
-     * Load user by username (which is actually the email in our case).
-     * Throws if not found.
+     * Loads a user by either email or username.
+     * Throws {@link UsernameNotFoundException} if no user matches the login.
      */
     @Override
     @Transactional
